@@ -1,0 +1,20 @@
+.btn-keycloak {
+    background-color: #2e3f54;
+    border-color: #2e3f54;
+    color: white;
+    padding: 10px 20px;
+    margin-top: 15px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.btn-keycloak:hover {
+    background-color: #1c2b3e;
+    border-color: #1c2b3e;
+    color: white;
+}
+
+.pimcore_keycloak_icon {
+    background: url(../img/keycloak.svg) center center no-repeat !important;
+    background-size: 16px !important;
+}

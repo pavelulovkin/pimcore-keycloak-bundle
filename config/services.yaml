@@ -1,0 +1,40 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+        bind:
+            $autoCreateUsers: '%iperson1337_pimcore_keycloak.auto_create_users%'
+            $syncUserData: '%iperson1337_pimcore_keycloak.sync_user_data%'
+
+    Psr\Log\LoggerInterface:
+        alias: monolog.logger.keycloak
+        public: true
+
+    Iperson1337\PimcoreKeycloakBundle\Security\User\KeycloakUserProvider:
+        arguments:
+            $logger: '@monolog.logger.keycloak'
+
+    Iperson1337\PimcoreKeycloakBundle\Security\Authenticator\KeycloakAuthenticator:
+        arguments:
+            $clientRegistry: '@KnpU\OAuth2ClientBundle\Client\ClientRegistry'
+            $userProvider: '@Iperson1337\PimcoreKeycloakBundle\Security\User\KeycloakUserProvider'
+            $router: '@router'
+            $logger: '@monolog.logger.keycloak'
+            $translator: '@translator'
+
+    Iperson1337\PimcoreKeycloakBundle\Service\UserMapperService:
+        arguments:
+            $logger: '@monolog.logger.keycloak'
+
+    # Запись событий в отдельный лог-канал
+    monolog.logger.keycloak:
+        parent: monolog.logger_prototype
+        public: false
+        arguments:
+            $name: 'keycloak'
+
+    # Автоматическая регистрация остальных сервисов по неймспейсу
+    Iperson1337\PimcoreKeycloakBundle\:
+        resource: '../src/*'
+        exclude: '../src/{DependencyInjection,Migrations,Model,Resources,Tests}'

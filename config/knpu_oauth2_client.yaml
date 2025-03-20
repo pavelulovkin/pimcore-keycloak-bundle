@@ -1,0 +1,15 @@
+knpu_oauth2_client:
+    clients:
+        keycloak:
+            type: generic
+            provider_class: Iperson1337\PimcoreKeycloakBundle\Provider\KeycloakProvider
+            client_class: KnpU\OAuth2ClientBundle\Client\OAuth2Client
+            client_id: '%env(KEYCLOAK_CLIENT_ID)%'
+            client_secret: '%env(KEYCLOAK_CLIENT_SECRET)%'
+            redirect_route: iperson1337_pimcore_keycloak_auth_check
+            redirect_params: {}
+            provider_options:
+                auth_server_url: '%env(KEYCLOAK_SERVER_BASE_URL)%'
+                auth_server_public_url: '%env(KEYCLOAK_SERVER_PUBLIC_BASE_URL)%'
+                auth_server_private_url: '%env(KEYCLOAK_SERVER_PRIVATE_BASE_URL)%'
+                realm: '%env(KEYCLOAK_REALM)%'

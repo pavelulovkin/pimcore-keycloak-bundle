@@ -1,0 +1,15 @@
+iperson1337_pimcore_keycloak_auth_connect:
+    path: /auth/keycloak/connect
+    controller: Iperson1337\PimcoreKeycloakBundle\Controller\KeycloakController::connectAction
+
+iperson1337_pimcore_keycloak_auth_check:
+    path: /auth/keycloak/check
+    controller: Iperson1337\PimcoreKeycloakBundle\Controller\KeycloakController::checkAction
+
+iperson1337_pimcore_keycloak_auth_logout:
+    path: /auth/keycloak/logout
+    controller: Iperson1337\PimcoreKeycloakBundle\Controller\KeycloakController::logoutAction
+
+iperson1337_pimcore_keycloak_diagnostic:
+    path: /auth/keycloak/diagnostic
+    controller: Iperson1337\PimcoreKeycloakBundle\Controller\KeycloakController::diagnosticAction

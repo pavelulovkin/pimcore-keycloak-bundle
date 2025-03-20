@@ -1,0 +1,26 @@
+iperson1337_pimcore_keycloak:
+    default_target_route_name: 'pimcore_admin_index'
+    admin_user_class: 'Pimcore\Model\User'
+
+    # Автоматически создавать пользователей в Pimcore при первом входе через Keycloak
+    auto_create_users: true
+
+    # Синхронизировать данные пользователя при каждом входе
+    sync_user_data: true
+
+    # Настройки подключения к Keycloak
+    keycloak:
+        client_id: '%env(KEYCLOAK_CLIENT_ID)%'
+        client_secret: '%env(KEYCLOAK_CLIENT_SECRET)%'
+        server_url: '%env(KEYCLOAK_SERVER_BASE_URL)%'
+        server_public_url: '%env(KEYCLOAK_SERVER_PUBLIC_BASE_URL)%'
+        server_private_url: '%env(KEYCLOAK_SERVER_PRIVATE_BASE_URL)%'
+        realm: '%env(KEYCLOAK_REALM)%'
+        ssl_verification: false
+
+    # Маппинг полей пользователя Keycloak на поля пользователя Pimcore
+    user_mapping:
+        username: 'preferred_username'
+        email: 'email'
+        firstname: 'given_name'
+        lastname: 'family_name'

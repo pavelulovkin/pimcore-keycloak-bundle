@@ -1,0 +1,65 @@
+---
+version: '3.8'
+
+services:
+
+  keycloak:
+    image: local/keycloak:latest
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - KEYCLOAK_HOSTNAME=keycloak.docker
+      - KEYCLOAK_PRODUCTION=true
+      - KEYCLOAK_ENABLE_HTTPS=true
+      - KEYCLOAK_EXTRA_ARGS=-Dkeycloak.profile.feature.docker=enabled
+      - KEYCLOAK_ADMIN_USER=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KEYCLOAK_DATABASE_HOST=postgres
+      - KEYCLOAK_DATABASE_PORT=5432
+      - KEYCLOAK_DATABASE_NAME=keycloak
+      - KEYCLOAK_DATABASE_USER=keycloak
+      - KEYCLOAK_DATABASE_PASSWORD=keycloak
+      - KEYCLOAK_DATABASE_SCHEMA=public
+      - KEYCLOAK_HTTP_PORT=8080
+      - KEYCLOAK_BIND_ADDRESS=0.0.0.0
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik
+        - traefik.docker.lbswarm=true
+        - traefik.http.services.keycloak.loadbalancer.server.port=8080
+        # HTTP
+        - traefik.http.routers.keycloak.entryPoints=web
+        - traefik.http.routers.keycloak.rule=Host(`keycloak.docker`)
+        - traefik.http.routers.keycloak.middlewares=keycloak-redirect-http-https@docker
+        # Middlewares: http => https
+        - traefik.http.middlewares.keycloak-redirect-http-https.redirectscheme.scheme=https
+        - traefik.http.middlewares.keycloak-redirect-http-https.redirectscheme.permanent=true
+        # HTTPS
+        - traefik.http.routers.keycloak-https.entrypoints=websecure
+        - traefik.http.routers.keycloak-https.rule=Host(`keycloak.docker`)
+        - traefik.http.routers.keycloak-https.tls=true
+        #- traefik.http.routers.keycloak-https.tls.certresolver=letsencrypt
+    networks:
+      - traefik
+      - db
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=keycloak
+      - POSTGRES_DB=keycloak
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - db
+
+volumes:
+  postgres_data:
+
+networks:
+  db:
+  traefik:
+    external: true
