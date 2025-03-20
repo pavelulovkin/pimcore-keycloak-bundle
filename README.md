@@ -105,7 +105,8 @@ security:
 ```yaml
 # config/routes.yaml
 iperson1337_pimcore_keycloak:
-    resource: "@Iperson1337/PimcoreKeycloakBundle/Resources/config/routing.yaml"
+    resource: "@PimcoreKeycloakBundle/config/routing.yaml"
+    prefix: /
 ```
 
 7. **Обновите cookie_samesite для поддержки OAuth2**
@@ -129,7 +130,7 @@ bin/console cache:clear
 2. Установите Client ID как `pimcore-admin` (или то, что указано в конфигурации)
 3. Установите Access Type как `confidential`
 4. Включите "Standard Flow" и "Direct Access Grants"
-5. Установите Valid Redirect URIs как `https://your-pimcore-domain.com/admin/keycloak/check`
+5. Установите Valid Redirect URIs как `https://your-pimcore-domain.com/auth/keycloak/check`
 6. После сохранения перейдите на вкладку Credentials для получения Client Secret
 
 ## Маппинг пользователей

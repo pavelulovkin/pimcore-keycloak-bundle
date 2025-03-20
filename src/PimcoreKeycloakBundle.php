@@ -25,14 +25,14 @@ class PimcoreKeycloakBundle extends AbstractPimcoreBundle implements PimcoreBund
     public function getJsPaths(): array
     {
         return [
-            '/bundles/skiftradekeycloak/js/pimcore/startup.js'
+            '/bundles/pimcorekeycloakbundle/js/pimcore/startup.js'
         ];
     }
 
     public function getCssPaths(): array
     {
         return [
-            '/bundles/skiftradekeycloak/css/admin.css'
+            '/bundles/pimcorekeycloakbundle/css/admin.css'
         ];
     }
 
