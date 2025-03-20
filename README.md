@@ -85,23 +85,64 @@ KEYCLOAK_REALM=your-realm
 # config/packages/security.yaml
 security:
     enable_authenticator_manager: true
-    
+
     providers:
-        # Добавьте провайдер для пользователей Keycloak
-        keycloak_provider:
-            id: Iperson1337\PimcoreKeycloakBundle\Security\User\KeycloakUserProvider
-        
+        # Стандартный провайдер Pimcore
+        pimcore_admin:
+            id: Pimcore\Security\User\UserProvider
+
     firewalls:
-        # Настройте firewall для административного интерфейса
-        admin:
+        # Общедоступные ресурсы, не требующие аутентификации
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        # Публичные API, не требующие аутентификации
+        public_api:
+            pattern: ^/api/public
+            security: false
+
+        #pimcore_admin: '%pimcore_admin_bundle.firewall_settings%'
+
+        # Pimcore Admin интерфейс с аутентификацией через Keycloak
+        pimcore_admin:
             pattern: ^/admin
-            provider: keycloak_provider
+            provider: pimcore_admin
             custom_authenticators:
+                - Pimcore\Bundle\AdminBundle\Security\Authenticator\AdminTokenAuthenticator
                 - Iperson1337\PimcoreKeycloakBundle\Security\Authenticator\KeycloakAuthenticator
-            entry_point: Iperson1337\PimcoreKeycloakBundle\Security\Authenticator\KeycloakAuthenticator
+            form_login:
+                login_path: pimcore_admin_login
+                check_path: pimcore_admin_login_check
+                default_target_path: pimcore_admin_index
+                username_parameter: username
+                password_parameter: password
             logout:
-                path: iperson1337_pimcore_keycloak_auth_logout
-                target: iperson1337_pimcore_keycloak_auth_connect
+                path: pimcore_admin_logout
+                target: pimcore_admin_login
+            entry_point: form_login
+
+    access_control:
+        # Pimcore admin ACl  // DO NOT CHANGE!
+        - { path: ^/admin/settings/display-custom-logo, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/login/2fa-verify, roles: IS_AUTHENTICATED_2FA_IN_PROGRESS }
+        - { path: ^/admin/login/2fa-setup, roles: ROLE_PIMCORE_USER }
+        - { path: ^/admin/login/2fa, roles: IS_AUTHENTICATED_2FA_IN_PROGRESS }
+        - { path: ^/admin/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/login/(login|lostpassword|deeplink|csrf-token)$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/login/2fa, roles: IS_AUTHENTICATED_2FA_IN_PROGRESS }
+
+        # Маршруты Keycloak
+        - { path: ^/admin/keycloak, roles: PUBLIC_ACCESS }
+
+        # Защищенный административный интерфейс
+        - { path: ^/admin, roles: ROLE_PIMCORE_USER }
+        - { path: ^/asset/webdav, roles: ROLE_PIMCORE_USER }
+
+    role_hierarchy:
+        # Pimcore admin  // DO NOT CHANGE!
+        ROLE_PIMCORE_ADMIN: [ROLE_PIMCORE_USER]
+
 ```
 
 6. **Добавьте маршруты в конфигурацию**
