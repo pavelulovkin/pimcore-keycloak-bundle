@@ -28,7 +28,7 @@
   "extra": {
     "pimcore": {
       "bundles": [
-        "KeycloakBundle"
+        "PimcoreKeycloakBundle"
       ]
     }
   }
