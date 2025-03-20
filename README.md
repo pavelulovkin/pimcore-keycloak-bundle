@@ -56,7 +56,7 @@ iperson1337_pimcore_keycloak:
         server_public_url: '%env(KEYCLOAK_SERVER_PUBLIC_BASE_URL)%'
         server_private_url: '%env(KEYCLOAK_SERVER_PRIVATE_BASE_URL)%'
         realm: '%env(KEYCLOAK_REALM)%'
-        ssl_verification: false
+        ssl_verification: true # Рекомендуется всегда использовать true в production
 
     # Маппинг полей пользователя Keycloak на поля пользователя Pimcore
     user_mapping:
@@ -69,14 +69,14 @@ iperson1337_pimcore_keycloak:
 4. **Добавьте переменные окружения в `.env` файл**
 
 ```
-###> keycloak-bundle ###
+###> iperson1337/pimcore-keycloak-bundle ###
 KEYCLOAK_CLIENT_ID=pimcore-admin
 KEYCLOAK_CLIENT_SECRET=your-client-secret
 KEYCLOAK_SERVER_BASE_URL=https://keycloak.example.com/auth
 KEYCLOAK_SERVER_PUBLIC_BASE_URL=https://keycloak.example.com/auth
 KEYCLOAK_SERVER_PRIVATE_BASE_URL=https://keycloak.example.com/auth
 KEYCLOAK_REALM=your-realm
-###< keycloak-bundle ###
+###< iperson1337/pimcore-keycloak-bundle ###
 ```
 
 5. **Настройте security.yaml**
@@ -84,29 +84,41 @@ KEYCLOAK_REALM=your-realm
 ```yaml
 # config/packages/security.yaml
 security:
-    # ...
+    enable_authenticator_manager: true
+    
     providers:
-        # Используйте существующий провайдер pimcore_admin
-        pimcore_admin:
-            id: Pimcore\Bundle\AdminBundle\Security\User\UserProvider
+        # Добавьте провайдер для пользователей Keycloak
+        keycloak_provider:
+            id: Iperson1337\PimcoreKeycloakBundle\Security\User\KeycloakUserProvider
         
     firewalls:
-        # Для pimcore_admin добавьте аутентификатор Keycloak
-        pimcore_admin:
-            # ...
+        # Настройте firewall для административного интерфейса
+        admin:
+            pattern: ^/admin
+            provider: keycloak_provider
             custom_authenticators:
                 - Iperson1337\PimcoreKeycloakBundle\Security\Authenticator\KeycloakAuthenticator
-                # ... другие аутентификаторы, если есть
-            # ...
+            entry_point: Iperson1337\PimcoreKeycloakBundle\Security\Authenticator\KeycloakAuthenticator
+            logout:
+                path: iperson1337_pimcore_keycloak_auth_logout
+                target: iperson1337_pimcore_keycloak_auth_connect
 ```
 
-6. **Установите необходимые роуты**
+6. **Добавьте маршруты в конфигурацию**
 
 ```yaml
 # config/routes.yaml
-iperson1337_pimcore_keycloak:
-    resource: "@PimcoreKeycloakBundle/config/routing.yaml"
-    prefix: /
+iperson1337_pimcore_keycloak_auth_connect:
+    path: /auth/keycloak/connect
+    controller: Iperson1337\PimcoreKeycloakBundle\Controller\KeycloakController::connectAction
+
+iperson1337_pimcore_keycloak_auth_check:
+    path: /auth/keycloak/check
+    controller: Iperson1337\PimcoreKeycloakBundle\Controller\KeycloakController::checkAction
+
+iperson1337_pimcore_keycloak_auth_logout:
+    path: /auth/keycloak/logout
+    controller: Iperson1337\PimcoreKeycloakBundle\Controller\KeycloakController::logoutAction
 ```
 
 7. **Обновите cookie_samesite для поддержки OAuth2**
@@ -137,7 +149,7 @@ bin/console cache:clear
 
 Когда пользователь впервые входит через Keycloak, соответствующий пользователь Pimcore создается автоматически (если включена опция `auto_create_users`) со следующим маппингом:
 
-- Keycloak username → Pimcore username
+- Keycloak preferred_username → Pimcore username
 - Keycloak email → Pimcore email
 - Keycloak given_name → Pimcore firstname
 - Keycloak family_name → Pimcore lastname
@@ -158,11 +170,17 @@ bin/console cache:clear
 namespace App\Service;
 
 use Pimcore\Model\User;
+use Psr\Log\LoggerInterface;
 use Iperson1337\PimcoreKeycloakBundle\Provider\KeycloakResourceOwner;
 use Iperson1337\PimcoreKeycloakBundle\Service\UserMapperService;
 
 class CustomUserMapperService extends UserMapperService
 {
+    public function __construct(LoggerInterface $logger)
+    {
+        parent::__construct($logger);
+    }
+
     protected function syncUserRoles(User $user, array $keycloakRoles): void
     {
         parent::syncUserRoles($user, $keycloakRoles);
@@ -207,3 +225,21 @@ monolog:
             channels: [keycloak]
             max_files: 10
 ```
+
+## Безопасность и рекомендации
+
+1. Всегда включайте SSL-верификацию в продакшн-окружении (`ssl_verification: true`)
+2. Регулярно проверяйте и обновляйте клиентские секреты Keycloak
+3. Используйте HTTPS для всех взаимодействий между Pimcore и Keycloak
+4. Ограничьте список разрешенных редиректов в настройках клиента Keycloak
+
+## Устранение неполадок
+
+При возникновении проблем проверьте:
+
+1. Правильность настроек клиента в Keycloak
+2. Корректность URL-адресов и разрешенных редиректов
+3. Настройки scope и mappers в Keycloak
+4. Логи в файле keycloak.log
+
+Дополнительные руководства по устранению неполадок доступны в документации в папке `docs/`.
